@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulator Process Scheduling &amp; Deadlock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="headline-block">
+          <div class="brand">
+            <span class="mark">OS·SIM</span>
+          </div>
+          <h1>Process Scheduling &amp; Deadlock Simulator</h1>
+          <p>
+            Simulasi interaktif penjadwalan CPU (FCFS, SJF, Round Robin) dan
+            penanganan deadlock (Banker's Algorithm &amp; deteksi via
+            resource-allocation graph).
+          </p>
+        </div>
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="scheduler">Scheduler</button>
+          <button class="tab-btn" data-tab="deadlock">Deadlock</button>
+        </nav>
+      </header>
+
+      <!-- ================= SCHEDULER TAB ================= -->
+      <section class="view active" id="view-scheduler">
+        <div class="layout">
+          <div class="panel">
+            <h2>Daftar proses</h2>
+            <p class="sub">Atur arrival time &amp; burst time tiap proses.</p>
+
+            <table class="proc-table" id="proc-table">
+              <thead>
+                <tr>
+                  <th>Proses</th>
+                  <th>Arrival</th>
+                  <th>Burst</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="proc-tbody"></tbody>
+            </table>
+            <div class="btn-row">
+              <button class="btn small" id="add-proc">+ Tambah proses</button>
+            </div>
+
+            <div class="field" style="margin-top: 18px">
+              <label>Algoritma</label>
+              <select id="algo-select">
+                <option value="fcfs">FCFS — First Come First Served</option>
+                <option value="sjf">
+                  SJF — Shortest Job First (non-preemptive)
+                </option>
+                <option value="rr">Round Robin</option>
+              </select>
+            </div>
+            <div class="field" id="quantum-field" style="display: none">
+              <label>Time quantum</label>
+              <input type="number" id="quantum-input" value="2" min="1" />
+            </div>
+
+            <button class="btn primary full" id="run-scheduler">
+              Jalankan simulasi
+            </button>
+          </div>
+
+          <div>
+            <div class="panel viz-panel">
+              <h2>Gantt chart</h2>
+              <p class="sub" id="algo-desc">
+                Pilih algoritma lalu jalankan simulasi untuk melihat hasilnya.
+              </p>
+              <div id="gantt-container">
+                <div class="viz-empty">Belum ada simulasi dijalankan.</div>
+              </div>
+            </div>
+
+            <div class="panel" id="result-panel" style="display: none">
+              <h2>Hasil perhitungan</h2>
+              <table class="result-table" id="result-table"></table>
+              <div class="stat-row" id="stat-row"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DEADLOCK TAB ================= -->
+      <section class="view" id="view-deadlock">
+        <div class="subtabs">
+          <button class="subtab-btn active" data-sub="bankers">
+            Banker's Algorithm (Avoidance)
+          </button>
+          <button class="subtab-btn" data-sub="detect">
+            Detection (Resource Allocation Graph)
+          </button>
+        </div>
+
+        <!-- ---- Banker's ---- -->
+        <div class="subview active" id="sub-bankers">
+          <div class="layout">
+            <div class="panel">
+              <h2>Konfigurasi</h2>
+              <p class="sub">Jumlah proses &amp; jenis resource.</p>
+              <div class="row2">
+                <div class="field">
+                  <label>Jumlah proses</label>
+                  <input type="number" id="bank-n" value="5" min="2" max="6" />
+                </div>
+                <div class="field">
+                  <label>Jenis resource</label>
+                  <input type="number" id="bank-m" value="3" min="1" max="4" />
+                </div>
+              </div>
+              <button class="btn small" id="bank-rebuild">
+                Bangun ulang tabel
+              </button>
+
+              <div class="matrix-block" style="margin-top: 18px">
+                <div class="matrix-title"><span>Allocation</span></div>
+                <div id="bank-alloc-wrap"></div>
+              </div>
+              <div class="matrix-block">
+                <div class="matrix-title"><span>Max</span></div>
+                <div id="bank-max-wrap"></div>
+              </div>
+              <div class="matrix-block">
+                <div class="matrix-title"><span>Available</span></div>
+                <div id="bank-avail-wrap"></div>
+              </div>
+
+              <button class="btn primary full" id="run-bankers">
+                Cek status aman (safety check)
+              </button>
+            </div>
+
+            <div class="panel viz-panel">
+              <h2>Hasil analisis</h2>
+              <p class="sub">
+                Algoritma mencari urutan proses agar semua kebutuhan bisa
+                dipenuhi tanpa deadlock.
+              </p>
+              <div id="bankers-result">
+                <div class="viz-empty">Belum ada analisis dijalankan.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- Detection ---- -->
+        <div class="subview" id="sub-detect" style="display: none">
+          <div class="layout">
+            <div class="panel">
+              <h2>Resource allocation graph</h2>
+              <p class="sub">
+                Tentukan resource yang dipegang (holds) dan diminta (requests)
+                tiap proses. Pisahkan dengan koma, contoh: R1,R2
+              </p>
+              <div class="row2">
+                <div class="field">
+                  <label>Jumlah proses</label>
+                  <input type="number" id="det-n" value="2" min="2" max="6" />
+                </div>
+                <div class="field">
+                  <label>Jumlah resource</label>
+                  <input type="number" id="det-m" value="2" min="1" max="5" />
+                </div>
+              </div>
+              <button class="btn small" id="det-rebuild">
+                Bangun ulang form
+              </button>
+
+              <div
+                class="graph-rows"
+                id="det-rows"
+                style="margin-top: 16px"
+              ></div>
+
+              <button class="btn primary full" id="run-detect">
+                Deteksi deadlock
+              </button>
+            </div>
+
+            <div class="panel viz-panel">
+              <h2>Visualisasi graph</h2>
+              <p class="sub">
+                Node bulat = proses, node kotak = resource. Panah merah menandai
+                siklus (deadlock).
+              </p>
+              <div id="rag-container">
+                <div class="viz-empty">Belum ada graph dibangun.</div>
+              </div>
+              <div id="detect-banner"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Dibuat untuk tugas Operating System — simulasi edukasi Process
+        Scheduling &amp; Deadlock. Algoritma: FCFS, SJF (non-preemptive), Round
+        Robin, Banker's Algorithm, deteksi siklus pada resource-allocation graph
+        (single instance per resource).
+      </footer>
+    </div>
+  </body>
+  <script src="script.js"></script>
+</html>
